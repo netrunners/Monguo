@@ -10,8 +10,6 @@ import pymongo
 
 from .error import *
 
-import traceback
-
 __all__ = ['Connection']
 
 class Connection(object):

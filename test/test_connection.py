@@ -5,12 +5,16 @@
 # @Last Modified by:   lime
 # @Last Modified time: 2014-03-26 14:01:29
 
-from motor import MotorClient, MotorDatabase, MotorReplicaSetClient
-from tornado.testing import AsyncTestCase, gen_test
-from monguo.connection import Connection
-from monguo.error import *
+from tornado.testing import gen_test
 
-class ConnectionTest(AsyncTestCase):
+from motor import MotorClient, MotorDatabase
+from motor import MotorReplicaSetClient
+
+from monguo.connection import Connection
+from . import MonguoTestBase
+
+class ConnectionTest(MonguoTestBase):
+
     def test_connection(self):
         # test connect(), get_connection(), get_database()...
         Connection.connect('monguo_test1')
@@ -35,7 +39,7 @@ class ConnectionTest(AsyncTestCase):
         connection_name_list = Connection.get_connection_name_list()
         self.assertIn(Connection.DEFAULT_CONNECTION_NAME, connection_name_list)
         self.assertIn('con', connection_name_list)
-        self.assertEqual(sorted([Connection.DEFAULT_CONNECTION_NAME, 'con']), 
+        self.assertEqual(sorted([Connection.DEFAULT_CONNECTION_NAME, 'con']),
                          sorted(connection_name_list))
 
         # test switch_connection()

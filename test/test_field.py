@@ -12,4 +12,6 @@ from monguo.document import Document
 from monguo.field import *
 
 class FieldTest(AsyncTestCase):
-    pass
+
+    def test_field(self):
+        assert False,'no test'

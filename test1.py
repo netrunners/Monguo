@@ -6,20 +6,14 @@
 # @Last Modified time: 2014-03-26 14:37:29
 
 from datetime import datetime
-from bson.objectid import ObjectId
 from bson.dbref import DBRef
 from tornado import gen
 from tornado.ioloop import IOLoop
 from pprint import pprint
-#XXX check if we can keep pep8 by getting rid of this
-import sys,os
-ROOT_PATH = os.path.dirname(os.path.dirname(__file__))
-sys.path.insert(0, ROOT_PATH)
 
-from monguo.document import Document, EmbeddedDocument
-from monguo.connection import Connection
+from monguo.document import *
 from monguo.field import *
-
+from monguo.connection import *
 
 class UserDocument(Document):
     name  = StringField(required=True, unique=True, max_length=20)

@@ -6,11 +6,11 @@
 # @Last Modified time: 2014-03-26 14:07:06
 
 import unittest
-import pymongo
-import motor
 
-from tornado.testing import AsyncTestCase, gen_test
-from tornado import gen
+from tornado.testing import AsyncTestCase
+
+from tornado.testing import gen_test
+
 from monguo.connection import Connection
 from monguo.document import Document, EmbeddedDocument
 from monguo.field import *
@@ -58,6 +58,11 @@ class DocumentTest(MonguoTestBase):
         Connection.disconnect()
 
     @gen_test
+    def test_0_remove(self):
+        x = yield UserDocument.remove()
+        print(x)
+
+    @gen_test
     def test_insert(self):
         user = {
             'name': 'Lime',
@@ -65,14 +70,16 @@ class DocumentTest(MonguoTestBase):
             'skills': [{'name': 'python'}, {'name': 'Web Programming'}],
             'book': {'name': 'I am a bad guy', 'pages': '888'},
         }
-        
+        user_id = yield UserDocument.insert(user)
+        print(user_id)
+
     def test_save(self):
         pass
 
     def test_update(self):
         pass
-        
+
 
 if __name__ == '__main__':
     unittest.main()
-    
+

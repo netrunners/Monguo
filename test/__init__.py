@@ -7,7 +7,13 @@
 
 from tornado.testing import AsyncTestCase
 
-__all__ = ['MonguoTestBase']
-
 class MonguoTestBase(AsyncTestCase):
+    print('test run order is alphabetical')
+
+    def __init__(self,test):
+        AsyncTestCase.__init__(self,test)
+        print ('test : ',test)
     pass
+
+
+__all__ = ['MonguoTestBase','test_connection']

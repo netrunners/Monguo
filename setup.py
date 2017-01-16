@@ -20,12 +20,8 @@ Intended Audience :: Developers
 License :: OSI Approved :: Apache Software License
 Development Status :: 5 - Production/Stable
 Natural Language :: English
-Programming Language :: Python :: 2
-Programming Language :: Python :: 2.6
-Programming Language :: Python :: 2.7
-Programming Language :: Python :: 3
-Programming Language :: Python :: 3.0
-Programming Language :: Python :: 3.3
+rogramming Language :: Python :: 3.0
+Programming Language :: Python :: 3.4
 Operating System :: MacOS :: MacOS X
 Operating System :: Unix
 Programming Language :: Python
@@ -33,7 +29,7 @@ Programming Language :: Python :: Implementation :: CPython
 """
 
 # Version definition in hardcode
-version = '0.2.2'
+version = '0.3.0'
 description = 'Asynchronous MongoDB ORM for Tornado'
 long_description = open("README.rst").read()
 packages = ['monguo']
@@ -47,7 +43,7 @@ setup(name='monguo',
     author_email='shiyanhui66@gmail.com',
     url='https://github.com/shiyanhui/monguo',
     install_requires=[
-        'motor >= 0.4',
+        'motor >= 0.6.2',
     ],
     license='http://www.apache.org/licenses/LICENSE-2.0',
     classifiers=filter(None, classifiers.split('\n')),

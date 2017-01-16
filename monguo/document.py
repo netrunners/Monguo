@@ -17,7 +17,6 @@ from . import util
 from .connection import Connection
 from .error import *
 from .field import *
-from .connection import Connection
 from .validator import Validator
 '''
 from connection import Connection
@@ -25,7 +24,7 @@ from error import *
 from field import *
 from validator import Validator
 '''
-import traceback
+
 
 __all__ = ['BaseDocument', 'EmbeddedDocument', 'Document']
 
