@@ -1,4 +1,4 @@
-pymongo>=2.6
+pymongo>=3.4,<4
 tornado>=3.1
 greenlet>=0.4
-motor>=0.2
+motor>=1.1

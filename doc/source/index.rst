@@ -3,7 +3,7 @@
 Overview
 ========
 
-Monguo is an asynchronous MongoDB_ ORM with Motor_ dirver for Tornado_ applications.
+Monguo is an asynchronous MongoDB_ ORM with Motor_ driver for Tornado_ applications.
 
 .. image:: _static/monguo.jpg
 

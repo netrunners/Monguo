@@ -8,7 +8,9 @@
 import motor
 import pymongo
 
-from error import *
+from .error import *
+
+import traceback
 
 __all__ = ['Connection']
 
@@ -27,13 +29,13 @@ class Connection(object):
         Connect to MongoDB.
 
         :Parameters:
-          - `db_name(optional)`: The name of database. You can set it through 
+          - `db_name(optional)`: The name of database. You can set it through
             :meth:`~Connection.switch_database`.
-          - `connection_name(optional)`: It will use the default value 
+          - `connection_name(optional)`: It will use the default value
             :data:`~Connection.DEFAULT_CONNECTION_NAME` if not set.
-          - `replica_set(optional)`: If true it will use 
-            :class:`~motor.MotorReplicaSetClient` instead of 
-            :class:`~motor.MotorClient` to create a new connection. 
+          - `replica_set(optional)`: If true it will use
+            :class:`~motor.MotorReplicaSetClient` instead of
+            :class:`~motor.MotorClient` to create a new connection.
         '''
         if db_name is not None and not isinstance(db_name, str):
             raise TypeError("Argument 'db_name' should be str type.")
@@ -62,20 +64,21 @@ class Connection(object):
         cls._default_connection = connection_name
         cls._default_db = db_name
 
+
     @classmethod
     def disconnect(cls, connection_name=None):
         '''
         Disconnect the connection.
 
         :Parameters:
-          - `connection_name(optional)`: The connection name. If not set it 
-            will disconnect the current connection. 
+          - `connection_name(optional)`: The connection name. If not set it
+            will disconnect the current connection.
         '''
         if connection_name is None:
             connection_name = cls._default_connection
 
         for index, connection in enumerate(cls._connections):
-            if connection_name in connection.keys():
+            if connection_name in list(connection.keys()):
                 for item in connection[connection_name]:
                     item.close()
                 cls._connections.pop(index)
@@ -83,41 +86,41 @@ class Connection(object):
 
         if connection_name == cls._default_connection:
             if cls._connections:
-                cls._default_connection = cls._connections[0].keys()[0]
-            else:            
+                cls._default_connection = list(cls._connections[0].keys())[0]
+            else:
                 cls._default_connection = None
 
     @classmethod
     def get_connection(cls, connection_name=None, pymongo=False):
         '''
-        Get a connection, return None if the specified connection hasn't been 
+        Get a connection, return None if the specified connection hasn't been
         created.
 
         :Parameters:
-          - `connection_name(optional)`: The connection name. If not set it 
+          - `connection_name(optional)`: The connection name. If not set it
             will return the current connection.
-          - `pymongo(optional)`: If true it will return an instance of 
-            :class:`~pymongo.MongoClient` or :class:`~pymongo.MongoReplicaSetClient` 
+          - `pymongo(optional)`: If true it will return an instance of
+            :class:`~pymongo.MongoClient` or :class:`~pymongo.MongoReplicaSetClient`
             otherwise :class:`~motor.MotorClient` or :class:`~motor.MotorReplicaSetClient`.
         '''
         if connection_name is None:
             connection_name = cls._default_connection
 
         for connection in cls._connections:
-            if connection_name in connection.keys():
-                return connection[connection_name][1 if pymongo else 0]                 
+            if connection_name in list(connection.keys()):
+                return connection[connection_name][1 if pymongo else 0]
         return None
 
     @classmethod
     def get_database(cls, connection_name=None, db_name=None, pymongo=False):
         '''
-        Get a database. If the specified connection_name hasn't been created 
+        Get a database. If the specified connection_name hasn't been created
         it will raise a ConnectionError.
 
         :Parameters:
           - `connection_name(optional)`: It will use the current connection if not set.
           - `db_name(optional)`: Return the current database if not set.
-          - `pymongo(optional)`: If true it will return an instance of 
+          - `pymongo(optional)`: If true it will return an instance of
             :class:`~pymongo.MongoDatabase` otherwise :class:`~motor.MotorDatabase`.
 
         '''
@@ -137,7 +140,7 @@ class Connection(object):
     def get_default_database_name(cls):
         '''Return the name of current database.'''
 
-        if cls._default_db is None:  
+        if cls._default_db is None:
             raise ConnectionError("Haven't set default database.")
 
         return cls._default_db
@@ -155,7 +158,7 @@ class Connection(object):
     def get_connection_name_list(cls):
         '''Return the connections' names.'''
 
-        return [connection.keys()[0] for connection in cls._connections]
+        return [list(connection.keys())[0] for connection in cls._connections]
 
     @classmethod
     def switch_connection(cls, connection_name):
@@ -166,7 +169,7 @@ class Connection(object):
         '''
         if not isinstance(connection_name, str):
             raise TypeError("Argument 'connection_name' should be str type.")
-            
+
         if connection_name not in cls.get_connection_name_list():
             raise ConnectionError("'%s' hasn't been connected." % connection_name)
 
@@ -183,4 +186,7 @@ class Connection(object):
         if not isinstance(db_name, str):
             raise TypeError("Argument 'db_name' should be str type.")
 
+
         cls._default_db = db_name
+
+

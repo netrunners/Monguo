@@ -9,24 +9,30 @@ import sys
 import inspect
 import types
 import motor
-import util
-
 from tornado import gen
 from bson.dbref import DBRef
 from bson.objectid import ObjectId
+
+from . import util
+from .connection import Connection
+from .error import *
+from .field import *
+from .connection import Connection
+from .validator import Validator
+'''
 from connection import Connection
 from error import *
 from field import *
-from connection import Connection
 from validator import Validator
-
+'''
+import traceback
 
 __all__ = ['BaseDocument', 'EmbeddedDocument', 'Document']
 
 
 class MonguoOperation(object):
     '''
-    The query operation. 
+    The query operation.
 
     Each one corresponds to the same name method of motor.
     '''
@@ -37,8 +43,10 @@ class MonguoOperation(object):
         :Parameters:
           - `monguo_method`: The method to be bounded.
         '''
+
         @classmethod
         def method(cls, *args, **kwargs):
+
             collection = cls.get_collection()
             motor_method = getattr(collection, monguo_method)
 
@@ -53,15 +61,14 @@ class MonguoOperation(object):
             return motor_method(*args, **kwargs)
 
         return method
-    
+
 class MonguoMeta(type):
     '''Meta class of Document.'''
 
     def __new__(cls, name, bases, attrs):
         new_class = type.__new__(cls, name, bases, attrs)
-
         for base in reversed(inspect.getmro(new_class)):
-            for name, attr in base.__dict__.items():
+            for name, attr in list(base.__dict__.items()):
                 if isinstance(attr, Field):
                     if not util.legal_variable_name(name):
                         raise FieldNameError(field=name)
@@ -73,9 +80,8 @@ class MonguoMeta(type):
                 elif isinstance(attr, types.FunctionType):
                     new_attr = staticmethod(attr)
                     setattr(new_class, name, new_attr)
-        
-        return new_class
 
+        return new_class
 
 class BaseDocument(object):
     '''The document base, not support query operations.'''
@@ -85,7 +91,7 @@ class BaseDocument(object):
         '''Get all the Field instance attributes.'''
 
         fields = {}
-        for name, attr in cls.__dict__.items():
+        for name, attr in list(cls.__dict__.items()):
             if isinstance(attr, Field):
                 fields.update({name: attr})
         return fields
@@ -103,24 +109,24 @@ class BaseDocument(object):
         _document = {}
         fields_dict = cls.fields_dict()
 
-        for name, attr in document.items():
+        for name, attr in list(document.items()):
             if not util.legal_variable_name(name):
                 raise NameError("%s named error." % name)
 
             if name not in fields_dict:
                 raise UndefinedFieldError(field=name)
 
-        for name, attr in fields_dict.items():
-            if (attr.required and not document.has_key(name) 
+        for name, attr in list(fields_dict.items()):
+            if (attr.required and name not in document
                     and attr.default is None):
                 raise RequiredError(field=name)
 
             value = None
-            if (attr.required and not document.has_key(name) 
+            if (attr.required and name not in document
                     and attr.default is not None):
                 value = attr.default
 
-            elif document.has_key(name):
+            elif name in document:
                 value = document[name]
 
             if value is not None:
@@ -132,20 +138,17 @@ class BaseDocument(object):
 
         return _document
 
-   
 class EmbeddedDocument(BaseDocument):
     '''The embedded document, not support query operations.'''
-    pass  
+    pass
 
 
-class Document(BaseDocument):
+class Document(BaseDocument, metaclass=MonguoMeta):
     '''
-    The ORM core, supports `all the query operations of motor 
+    The ORM core, supports `all the query operations of motor
     <http://motor.readthedocs.org/en/stable/api/motor_collection.html>`_.'''
-
-    __metaclass__     = MonguoMeta
     meta              = {}
-    
+
     create_index      = MonguoOperation()
     drop_indexes      = MonguoOperation()
     drop_index        = MonguoOperation()
@@ -171,13 +174,11 @@ class Document(BaseDocument):
     uuid_subtype      = MonguoOperation()
     full_name         = MonguoOperation()
 
-    
     @classmethod
     def get_database_name(cls):
         '''Get the database name related to `cls`.'''
-
-        db_name = (cls.meta['db'] if 'db' in cls.meta else 
-            Connection.get_default_database_name())
+        db_name = (cls.meta['db'] if 'db' in cls.meta
+            else Connection.get_default_database_name())
         return db_name
 
     @classmethod
@@ -191,7 +192,7 @@ class Document(BaseDocument):
     @classmethod
     def get_database(cls, pymongo=False):
         '''
-        Get the database related to `cls`, it's an instance of 
+        Get the database related to `cls`, it's an instance of
         :class:`~motor.MotorDatabase`.
 
         :Parameters:
@@ -206,7 +207,7 @@ class Document(BaseDocument):
     @classmethod
     def get_collection(cls, pymongo=False):
         '''
-        Get the collection related to `cls`, it's an instance of 
+        Get the collection related to `cls`, it's an instance of
         :class:`~motor.MotorCollection`.
 
         :Parameters:
@@ -217,7 +218,7 @@ class Document(BaseDocument):
         collection_name = cls.get_collection_name()
         collection = db[collection_name]
         return collection
-    
+
     @classmethod
     @gen.coroutine
     def translate_dbref(cls, dbref):
@@ -251,7 +252,7 @@ class Document(BaseDocument):
         if not isinstance(document, dict):
             raise TypeError("Argument 'document' should be dict type.")
 
-        for name, value in document.items():
+        for name, value in list(document.items()):
             if isinstance(value, DBRef):
                 document[name] = yield cls.translate_dbref(value)
                 if depth > 1:

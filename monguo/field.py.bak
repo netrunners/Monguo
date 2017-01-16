@@ -6,7 +6,9 @@
 # @Last Modified time: 2014-05-28 21:11:03
 
 import re
+import util
 import inspect
+import sys
 import os
 import imp
 #import cPickle as pickle
@@ -15,7 +17,7 @@ from datetime import datetime, date, time
 from bson.dbref import DBRef
 from bson.binary import Binary
 from bson.objectid import ObjectId
-#from . import error
+from error import *
 
 __all__ = ['Field', 'StringField', 'IntegerField', 'BooleanField',
            'FloatField', 'EmbeddedDocumentField', 'GenericDictField',
@@ -159,7 +161,7 @@ class IntegerField(Field):
         if self.strict and not isinstance(value, (int)):
             raise TypeError("'%s' is not int or long type." % value)
         try:
-            value = int(value)
+            value = long(value)
         except:
             raise ValidateError("'%s' cann't be converted to int value." % value)
         return value
@@ -278,7 +280,7 @@ class DictField(GenericDictField):
         :Parameters:
           - `document`: The embedded document class.
         '''
-        from .document import EmbeddedDocument
+        from document import EmbeddedDocument
         if not issubclass(document, EmbeddedDocument):
             raise TypeError(
                 "Argument 'embedded_doc' should be EmbeddedDocument type.")
@@ -290,7 +292,7 @@ class DictField(GenericDictField):
         value = super(DictField, self).validate(value)
         value = self.document.validate_document(value)
 
-        for name, attr in list(self.document.fields_dict().items()):
+        for name, attr in self.document.fields_dict().items():
             if attr.unique and not attr.in_list:
                 count = self.collection.find({name: value[name]}).count()
                 if count:
@@ -352,7 +354,7 @@ class ReferenceField(Field):
         super(ReferenceField, self).__init__(**kwargs)
 
     def get_reference(self, reference):
-        from .document import Document
+        from document import Document
 
         if reference is None:
             return reference
