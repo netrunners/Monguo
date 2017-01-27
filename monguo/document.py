@@ -213,7 +213,7 @@ class Document(BaseDocument, metaclass=MonguoMeta):
           - `pymongo`: Return pymongo.collection if True.
         '''
 
-        db= cls.get_database(pymongo)
+        db = cls.get_database(pymongo)
         collection_name = cls.get_collection_name()
         collection = db[collection_name]
         return collection
@@ -227,7 +227,7 @@ class Document(BaseDocument, metaclass=MonguoMeta):
           - `dbref`: The dbref to be translated.
         '''
         if not isinstance(dbref, DBRef):
-            raise TypeError("'%s' isn't DBRef type.")
+            raise TypeError("'%s' isn't DBRef type." % dbref)
 
         if dbref.database is not None:
             connection_name = cls.meta['connection'] if 'connection' in cls.meta else None
@@ -282,16 +282,16 @@ class Document(BaseDocument, metaclass=MonguoMeta):
     def to_list(cls, cursor, length=None):
         '''Warp cursor.to_list() since `length` is required in `cursor.to_list`'''
 
-        resut = []
+        res = []
 
         if length is not None:
             assert isinstance(length, int)
-            reuslt = yield cursor.to_list(length=length)
+            res = yield cursor.to_list(length=length)
         else:
             while (yield cursor.fetch_next):
-                resut.append(cursor.next_object())
+                res.append(cursor.next_object())
 
-        raise gen.Return(resut)
+        raise gen.Return(res)
 
 
     @classmethod

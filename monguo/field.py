@@ -15,7 +15,7 @@ from datetime import datetime, date, time
 from bson.dbref import DBRef
 from bson.binary import Binary
 from bson.objectid import ObjectId
-#from . import error
+from .error import *
 
 __all__ = ['Field', 'StringField', 'IntegerField', 'BooleanField',
            'FloatField', 'EmbeddedDocumentField', 'GenericDictField',
@@ -60,7 +60,7 @@ class Field(object):
 
             if self.default is not None and self.default not in self.candidate:
                 raise ValueError("default value '%s' isn't in candidate %s" %
-                    (self.default, self.candidate))
+                                 (self.default, self.candidate))
 
     @property
     def in_list(self):
@@ -230,7 +230,7 @@ class BooleanField(Field):
             value = bool(value)
         except:
             raise ValidateError("Cann't convert '%s' to bool." % value)
-        return  value
+        return value
 
     def validate(self, value):
         value = super(BooleanField, self).validate(value)
@@ -385,7 +385,7 @@ class ReferenceField(Field):
 
     def check_type(self, value):
         if not isinstance(value, DBRef):
-            raise TypeError("Value '%s' isn't DBRef type." % value)
+            raise TypeError("Value %s isn't DBRef type." % value)
         return value
 
     def validate(self, value):
@@ -398,12 +398,12 @@ class ReferenceField(Field):
                     self.reference.get_database_name() != value.database):
                 raise ValidateError(
                     "Database is different betwwen '%s' and '%s'" % (
-                    self.reference.get_database_name(), value.database))
+                        self.reference.get_database_name(), value.database))
 
             if value.collection != self.reference.get_collection_name():
                 raise ValidateError(
                     "Collection is different betwwen '%s' and '%s'" % (
-                    self.reference.get_collection_name(), value.collection))
+                        self.reference.get_collection_name(), value.collection))
 
         return value
 

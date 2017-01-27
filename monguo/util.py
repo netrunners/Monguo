@@ -6,14 +6,15 @@
 # @Last Modified time: 2013-11-11 20:22:37
 
 import re
+from bson import DBRef
+from bson.objectid import ObjectId
 
 def camel_to_underline(camel):
-    if not isinstance(camel, str):
+    if not type(camel) is str:
         raise TypeError('camel should be string type!')
-        
-    return ''.join([''.join(('_', item.lower())) 
-           if item.isupper() and index else item.lower() 
-           for index, item in enumerate(camel)])
+
+    return ''.join([''.join(('_', item.lower()))
+        if item.isupper() and index else item.lower() for index, item in enumerate(camel)])
 
 def legal_variable_name(name):
     regex = re.compile('^[_a-zA-Z][_a-zA-Z0-9]*$')
@@ -28,3 +29,6 @@ def isnum(value):
         return False
     else:
         return True
+
+def DB_Ref(self,Document,_id):
+    return DBRef(Document.meta['collection'], ObjectId(_id))

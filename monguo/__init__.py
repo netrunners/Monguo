@@ -6,17 +6,11 @@
 # @Last Modified time: 2014-06-14 22:56:48
 
 '''Monguo, an asynchronous MongoDB ORM for Tornado'''
-'''
-from sys import path
-from os.path import realpath, dirname
-path.append(dirname(realpath(__file__)))
 
-from connection import *
-from document import *
-from field import *
-from error import *
-'''
-__all__ = ['connection','document','util']
+from .document import Document, EmbeddedDocument
+from .field import *
+
+__all__ = ['connection','document','util','Document','EmbeddedDocument','StringField']
 __title__ = 'Monguo'
 __version__ = '0.3.0'
 __author__ = 'Lime, Flint'

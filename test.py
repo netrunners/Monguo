@@ -11,7 +11,8 @@ from tornado import gen
 from tornado.ioloop import IOLoop
 from pprint import pprint
 
-from monguo.document import *
+from monguo import Document, EmbeddedDocument
+#from monguo.document import *
 from monguo.field import *
 from monguo.connection import *
 
