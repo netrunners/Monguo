@@ -26,10 +26,10 @@ Dependencies
 
 Monguo works in all the environments officially supported by Tornado_ and Motor_. It requires:
 
-* pymongo>=3.4,<4
-* tornado>=4.4
-* greenlet>=0.4
-* motor>=1.1
+* pymongo_ >=3.4,<4
+* tornado_ >=4.4
+* greenlet_ >=0.4
+* motor_ >=1.1
 
 Examples
 ========
