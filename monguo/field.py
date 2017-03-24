@@ -522,3 +522,4 @@ class LocationField(Field):
     def validate(self, value):
         value = super(LocationField, self).validate(value)
         return value
+

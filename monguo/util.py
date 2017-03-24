@@ -30,5 +30,10 @@ def isnum(value):
     else:
         return True
 
-def DB_Ref(self,Document,_id):
+def DB_Ref(Document,_id):
+    ''' this is valid for _id as a string id  ('5890365...')
+    or for an ObjectId already ObjectId('5890365...')
+
+    ie : ObjectId(ObjectId('5890365...')) is ok '''
+
     return DBRef(Document.meta['collection'], ObjectId(_id))
