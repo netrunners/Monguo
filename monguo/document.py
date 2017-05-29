@@ -9,7 +9,7 @@ import sys
 import inspect
 import types
 import motor
-from tornado import gen
+from tornado.gen import coroutine, Return
 from bson.dbref import DBRef
 from bson.objectid import ObjectId
 
@@ -219,7 +219,7 @@ class Document(BaseDocument, metaclass=MonguoMeta):
         return collection
 
     @classmethod
-    @gen.coroutine
+    @coroutine
     def translate_dbref(cls, dbref):
         '''Get the document related with `dbref`.
 
@@ -237,10 +237,32 @@ class Document(BaseDocument, metaclass=MonguoMeta):
 
         collection = db[dbref.collection]
         result = yield collection.find_one({'_id': ObjectId(dbref.id)})
-        raise gen.Return(result)
+        raise Return(result)
+
 
     @classmethod
-    @gen.coroutine
+    @coroutine
+    def find_by_id(cls, _id):
+        '''Get a document by id.
+
+        :Parameters:
+          - `id`:
+        '''
+        if not isinstance(dbref, DBRef):
+            raise TypeError("'%s' isn't DBRef type." % dbref)
+
+        if dbref.database:
+            connection_name = cls.meta['connection'] if 'connection' in cls.meta else None
+            db = Connection.get_database(connection_name, dbref.database)
+        else:
+            db = cls.get_database()
+
+        collection = db[dbref.collection]
+        result = yield collection.find_one({'_id': ObjectId(_id)})
+        raise Return(result)
+
+    @classmethod
+    @coroutine
     def translate_dbref_in_document(cls, document, depth=1):
         '''Translate dbrefs in the specified `document`.
 
@@ -258,10 +280,10 @@ class Document(BaseDocument, metaclass=MonguoMeta):
                     document[name] = yield cls.translate_dbref_in_document(
                         document[name], depth - 1)
 
-        raise gen.Return(document)
+        raise Return(document)
 
     @classmethod
-    @gen.coroutine
+    @coroutine
     def translate_dbref_in_document_list(cls, document_list, depth=1):
         '''Translate dbrefs in the document list.
 
@@ -275,10 +297,10 @@ class Document(BaseDocument, metaclass=MonguoMeta):
         for document in document_list:
             document = yield cls.translate_dbref_in_document(document, depth)
 
-        raise gen.Return(document_list)
+        raise Return(document_list)
 
     @classmethod
-    @gen.coroutine
+    @coroutine
     def to_list(cls, cursor, length=None):
         '''Warp cursor.to_list() since `length` is required in `cursor.to_list`'''
 
@@ -291,7 +313,7 @@ class Document(BaseDocument, metaclass=MonguoMeta):
             while (yield cursor.fetch_next):
                 res.append(cursor.next_object())
 
-        raise gen.Return(res)
+        raise Return(res)
 
 
     @classmethod
