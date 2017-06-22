@@ -116,13 +116,15 @@ class BaseDocument(object):
                 raise UndefinedFieldError(field=name)
 
         for name, attr in list(fields_dict.items()):
-            if (attr.required and name not in document
-                    and attr.default is None):
+            if (attr.required and
+                    name not in document and
+                    attr.default is None ):
                 raise RequiredError(field=name)
 
             value = None
-            if (attr.required and name not in document
-                    and attr.default is not None):
+            if (attr.required and
+                    name not in document and
+                    attr.default is not None):
                 value = attr.default
 
             elif name in document:
@@ -177,7 +179,7 @@ class Document(BaseDocument, metaclass=MonguoMeta):
     def get_database_name(cls):
         '''Get the database name related to `cls`.'''
         db_name = (cls.meta['db'] if 'db' in cls.meta
-            else Connection.get_default_database_name())
+                    else Connection.get_default_database_name())
         return db_name
 
     @classmethod
@@ -185,7 +187,7 @@ class Document(BaseDocument, metaclass=MonguoMeta):
         '''Get the collection name related to `cls`.'''
 
         collection_name = (cls.meta['collection'] if 'collection' in cls.meta
-            else util.camel_to_underline(cls.__name__))
+                            else util.camel_to_underline(cls.__name__))
         return collection_name
 
     @classmethod
@@ -220,7 +222,7 @@ class Document(BaseDocument, metaclass=MonguoMeta):
 
     @classmethod
     @coroutine
-    def translate_dbref(cls, dbref):
+    def translate_dbref(cls, dbref, fields=None):
         '''Get the document related with `dbref`.
 
         :Parameters:
@@ -236,7 +238,7 @@ class Document(BaseDocument, metaclass=MonguoMeta):
             db = cls.get_database()
 
         collection = db[dbref.collection]
-        result = yield collection.find_one({'_id': ObjectId(dbref.id)})
+        result = yield collection.find_one({'_id': ObjectId(dbref.id)}, fields)
         raise Return(result)
 
 
