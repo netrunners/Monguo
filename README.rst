@@ -2,17 +2,15 @@
 Monguo
 ======
 
+This is the port of Monguo to Python3
+
 .. image:: https://github.com/shiyanhui/monguo/blob/master/doc/source/_static/monguo.jpg?raw=true
-	:width: 200px
+	:width: 100px
 	
 :Info: Monguo is a full-featured, asynchronous MongoDB_ ORM with Motor_ dirver for Tornado_ applications.
-:Author: Lime YH.Shi
+:Author: Lime YH.Shi 
+:Maintainer: Phil Estival
 
-.. image:: https://pypip.in/v/monguo/badge.png
-        :target: https://crate.io/packages/monguo
-
-.. image:: https://pypip.in/d/monguo/badge.png
-        :target: https://crate.io/packages/monguo
 
 Installation
 ============
@@ -54,7 +52,7 @@ Examples
         def get_user_list(skip=0, limit=None):
             cursor = UserDocument.find().skip(skip)
 
-            if limit is not None:
+            if limit:
                 assert isinstance(limit, int) and limit > 0
                 cursor.limit(limit)
 
