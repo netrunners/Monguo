@@ -222,7 +222,7 @@ class Document(BaseDocument, metaclass=MonguoMeta):
 
     @classmethod
     @coroutine
-    def translate_dbref(cls, dbref, fields=None):
+    def embed_reference(cls, dbref, fields=None):
         '''Get the document related with `dbref`.
 
         :Parameters:
@@ -265,7 +265,7 @@ class Document(BaseDocument, metaclass=MonguoMeta):
 
     @classmethod
     @coroutine
-    def translate_dbref_in_document(cls, document, depth=1):
+    def embed_reference_in_document(cls, document, depth=1):
         '''Translate dbrefs in the specified `document`.
 
         :Parameters:
@@ -277,16 +277,16 @@ class Document(BaseDocument, metaclass=MonguoMeta):
 
         for name, value in list(document.items()):
             if isinstance(value, DBRef):
-                document[name] = yield cls.translate_dbref(value)
+                document[name] = yield cls.embed_reference(value)
                 if depth > 1:
-                    document[name] = yield cls.translate_dbref_in_document(
+                    document[name] = yield cls.embed_reference_in_document(
                         document[name], depth - 1)
 
         raise Return(document)
 
     @classmethod
     @coroutine
-    def translate_dbref_in_document_list(cls, document_list, depth=1):
+    def embed_reference_in_document_list(cls, document_list, depth=1):
         '''Translate dbrefs in the document list.
 
         :Parameters:
@@ -297,7 +297,7 @@ class Document(BaseDocument, metaclass=MonguoMeta):
             raise TypeError("Argument document_list should be list or tuple tpye.")
 
         for document in document_list:
-            document = yield cls.translate_dbref_in_document(document, depth)
+            document = yield cls.embed_reference_in_document(document, depth)
 
         raise Return(document_list)
 
