@@ -144,6 +144,10 @@ def test():
     user_list = UserDocument.get_user_list_6()
     print (user_list)
 
+    user = yield UserDocument.find_one({'name': 'Bob'}, {"age":1})
+    print('find bob : ', user)
+
+
 
 if __name__ == '__main__':
     Connection.connect('test2')
