@@ -18,12 +18,6 @@ from .connection import Connection
 from .error import *
 from .field import *
 from .validator import Validator
-'''
-from connection import Connection
-from error import *
-from field import *
-from validator import Validator
-'''
 
 
 __all__ = ['BaseDocument', 'EmbeddedDocument', 'Document']
@@ -60,6 +54,7 @@ class MonguoOperation(object):
             return motor_method(*args, **kwargs)
 
         return method
+
 
 class MonguoMeta(type):
     '''Meta class of Document.'''
@@ -220,27 +215,6 @@ class Document(BaseDocument, metaclass=MonguoMeta):
         collection = db[collection_name]
         return collection
 
-    @classmethod
-    @coroutine
-    def embed_reference(cls, dbref, fields=None):
-        '''Get the document related with `dbref`.
-
-        :Parameters:
-          - `dbref`: The dbref to be translated.
-        '''
-        if not isinstance(dbref, DBRef):
-            raise TypeError("'%s' isn't DBRef type." % dbref)
-
-        if dbref.database is not None:
-            connection_name = cls.meta['connection'] if 'connection' in cls.meta else None
-            db = Connection.get_database(connection_name, dbref.database)
-        else:
-            db = cls.get_database()
-
-        collection = db[dbref.collection]
-        result = yield collection.find_one({'_id': ObjectId(dbref.id)}, fields)
-        raise Return(result)
-
 
     @classmethod
     @coroutine
@@ -265,8 +239,29 @@ class Document(BaseDocument, metaclass=MonguoMeta):
 
     @classmethod
     @coroutine
-    def embed_reference_in_document(cls, document, depth=1):
-        '''Translate dbrefs in the specified `document`.
+    def get_embed_ref(cls, dbref, fields=None):
+        '''Get the document related with `dbref`.
+
+        :Parameters:
+          - `dbref`: The dbref to be translated.
+        '''
+        if not isinstance(dbref, DBRef):
+            raise TypeError("'%s' isn't DBRef type." % dbref)
+
+        if dbref.database : 
+            connection_name = cls.meta['connection'] if 'connection' in cls.meta else None
+            db = Connection.get_database(connection_name, dbref.database)
+        else:
+            db = cls.get_database()
+
+        collection = db[dbref.collection]
+        result = yield collection.find_one({'_id': ObjectId(dbref.id)}, fields)
+        raise Return(result)
+
+    @classmethod
+    @coroutine
+    def embed_refs(cls, document, depth=1):
+        '''Translate all dbrefs in the specified `document`.
 
         :Parameters:
           - `document`: The specified document.
@@ -277,27 +272,28 @@ class Document(BaseDocument, metaclass=MonguoMeta):
 
         for name, value in list(document.items()):
             if isinstance(value, DBRef):
-                document[name] = yield cls.embed_reference(value)
+                document[name] = yield cls.get_embed_ref(value)
                 if depth > 1:
-                    document[name] = yield cls.embed_reference_in_document(
+                    document[name] = yield cls.embed_refs(
                         document[name], depth - 1)
 
         raise Return(document)
 
+
     @classmethod
     @coroutine
-    def embed_reference_in_document_list(cls, document_list, depth=1):
+    def embed_ref_in_doclist(cls, doc_list, depth=1):
         '''Translate dbrefs in the document list.
 
         :Parameters:
           - `document_list`: The specified document list.
           - `depth`: The translate depth.
         '''
-        if not isinstance(document_list, (list, tuple)):
+        if not isinstance(doc_list, (list, tuple)):
             raise TypeError("Argument document_list should be list or tuple tpye.")
 
-        for document in document_list:
-            document = yield cls.embed_reference_in_document(document, depth)
+        for document in doc_list:
+            document = yield cls.embed_refs(document, depth)
 
         raise Return(document_list)
 
