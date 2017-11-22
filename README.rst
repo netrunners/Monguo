@@ -2,19 +2,22 @@
 Monguo
 ======
 
-This is the port of Monguo to Python3
+This is the port of Monguo to Python3.6
+using python async functions instead of tornado coroutines
+
+the previous version is in the 3.0 branch
 
 .. image:: https://github.com/shiyanhui/monguo/blob/master/doc/source/_static/monguo.jpg?raw=true
 	:width: 100px
-	
+
 :Info: Monguo is a full-featured, asynchronous MongoDB_ ORM with Motor_ dirver for Tornado_ applications.
-:Author: Lime YH.Shi 
+:Author: Lime YH.Shi
 :Maintainer: Phil Estival
 
 
 Installation
 ============
-    
+
 .. code-block:: bash
 
     $ pip install monguo
@@ -33,7 +36,7 @@ Examples
 ========
 
 .. code-block:: python
-    
+
     from monguo import *
 
     Connection.connect('db') # connect to database
@@ -71,9 +74,9 @@ Examples
 
     # update
     yield UserDocument.update(
-        {'_id': user_id}, 
+        {'_id': user_id},
         {'$set': {'age': 19}})
-    
+
     # delete
     yield UserDocument.remove({'_id': user_id})
 
