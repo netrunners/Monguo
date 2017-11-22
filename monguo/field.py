@@ -102,7 +102,7 @@ class StringField(Field):
 
         super(StringField, self).__init__(**kwargs)
 
-        if regex is not None and not isinstance(regex, str):
+        if regex and not isinstance(regex, str):
             raise TypeError("Argument 'regex' should be string value.")
 
         if min_length is not None and not isinstance(min_length, (int)):

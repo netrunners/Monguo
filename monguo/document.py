@@ -9,7 +9,6 @@ import sys
 import inspect
 import types
 import motor
-from tornado.gen import coroutine, Return
 from bson.dbref import DBRef
 from bson.objectid import ObjectId
 
@@ -29,6 +28,7 @@ class MonguoOperation(object):
 
     Each one corresponds to the same name method of motor.
     '''
+
     def bound_method(self, monguo_method):
         '''
         Bound monguo method to motor method.
@@ -217,8 +217,7 @@ class Document(BaseDocument, metaclass=MonguoMeta):
 
 
     @classmethod
-    @coroutine
-    def find_by_id(cls, _id):
+    async def find_by_id(cls, _id):
         '''Get a document by id.
 
         :Parameters:
@@ -234,12 +233,11 @@ class Document(BaseDocument, metaclass=MonguoMeta):
             db = cls.get_database()
 
         collection = db[dbref.collection]
-        result = yield collection.find_one({'_id': ObjectId(_id)})
-        raise Return(result)
+        result = await collection.find_one({'_id': ObjectId(_id)})
+        return result
 
     @classmethod
-    @coroutine
-    def get_embed_ref(cls, dbref, fields=None):
+    async def get_embed_ref(cls, dbref, fields=None):
         '''Get the document related with `dbref`.
 
         :Parameters:
@@ -248,19 +246,18 @@ class Document(BaseDocument, metaclass=MonguoMeta):
         if not isinstance(dbref, DBRef):
             raise TypeError("'%s' isn't DBRef type." % dbref)
 
-        if dbref.database : 
+        if dbref.database :
             connection_name = cls.meta['connection'] if 'connection' in cls.meta else None
             db = Connection.get_database(connection_name, dbref.database)
         else:
             db = cls.get_database()
 
         collection = db[dbref.collection]
-        result = yield collection.find_one({'_id': ObjectId(dbref.id)}, fields)
-        raise Return(result)
+        result = await collection.find_one({'_id': ObjectId(dbref.id)}, fields)
+        return result
 
     @classmethod
-    @coroutine
-    def embed_refs(cls, document, depth=1):
+    async def embed_refs(cls, document, depth=1):
         '''Translate all dbrefs in the specified `document`.
 
         :Parameters:
@@ -272,17 +269,16 @@ class Document(BaseDocument, metaclass=MonguoMeta):
 
         for name, value in list(document.items()):
             if isinstance(value, DBRef):
-                document[name] = yield cls.get_embed_ref(value)
+                document[name] = await cls.get_embed_ref(value)
                 if depth > 1:
-                    document[name] = yield cls.embed_refs(
+                    document[name] = await cls.embed_refs(
                         document[name], depth - 1)
 
-        raise Return(document)
+        return document
 
 
     @classmethod
-    @coroutine
-    def embed_ref_in_doclist(cls, doc_list, depth=1):
+    async def embed_ref_in_doclist(cls, doc_list, depth=1):
         '''Translate dbrefs in the document list.
 
         :Parameters:
@@ -293,13 +289,12 @@ class Document(BaseDocument, metaclass=MonguoMeta):
             raise TypeError("Argument document_list should be list or tuple tpye.")
 
         for document in doc_list:
-            document = yield cls.embed_refs(document, depth)
+            document = await cls.embed_refs(document, depth)
 
-        raise Return(document_list)
+        return document_list
 
     @classmethod
-    @coroutine
-    def to_list(cls, cursor, length=None):
+    async def to_list(cls, cursor, length=None):
         '''Warp cursor.to_list() since `length` is required in `cursor.to_list`'''
 
         res = []
@@ -311,7 +306,40 @@ class Document(BaseDocument, metaclass=MonguoMeta):
             while (yield cursor.fetch_next):
                 res.append(cursor.next_object())
 
-        raise Return(res)
+        yield res
+
+    @classmethod
+    async def get_list( filtr={},
+                        page=0,
+                        pageSize=10,
+                        order=DESCENDING,
+                        sort='date') :
+        cursor = Cls.find(filtr)
+        skip = page * pageSize
+        cursor = cursor.sort([(sort, order)]).skip(skip).limit(pageSize)
+        return Cls.to_list(cursor)
+
+    @classmethod
+    async def delete_list(oids):
+        doclist = [ObjectId(oid) for oid in oids]
+        r = await Cls.remove({'_id': {'$in':doclist}})
+        return r
+
+    @classmethod
+    async def insert_one(id,doc):
+        doc.update({'date':datetime.now()})
+        return Cls.update(
+            {'_id': ObjectId(id)},
+            {'$set': doc}
+        )
+
+    @classmethod
+    async def update_one(id,doc):
+        doc.update({'update':datetime.now()})
+        return Cls.update(
+            {'_id': ObjectId(id)},
+            {'$set': doc}
+        )
 
 
     @classmethod
