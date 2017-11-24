@@ -1,23 +1,26 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # @Author: lime
 # @Date:   2013-10-25 19:45:09
-# @Last Modified by:   Lime
-# @Last Modified time: 2014-06-14 23:00:20
+# last modification by phil
+# Date:<2017-11-24 05:00:27>
 
-import sys
+# todo : property caches
+
 import inspect
 import types
 import motor
 from bson.dbref import DBRef
 from bson.objectid import ObjectId
-
+from tornado.gen import coroutine, Return
 from . import util
 from .connection import Connection
 from .error import *
 from .field import *
 from .validator import Validator
 
+# insert_one and update_one do autodate
+from datetime import datetime
+from pymongo import DESCENDING
 
 __all__ = ['BaseDocument', 'EmbeddedDocument', 'Document']
 
@@ -294,7 +297,8 @@ class Document(BaseDocument, metaclass=MonguoMeta):
         return document_list
 
     @classmethod
-    async def to_list(cls, cursor, length=None):
+    @coroutine
+    def to_list(cls, cursor, length=None):
         '''Warp cursor.to_list() since `length` is required in `cursor.to_list`'''
 
         res = []
@@ -306,41 +310,45 @@ class Document(BaseDocument, metaclass=MonguoMeta):
             while (yield cursor.fetch_next):
                 res.append(cursor.next_object())
 
-        yield res
+        raise Return(res)
 
     @classmethod
-    async def get_list( filtr={},
+    @coroutine
+    def list( cls, filtr={},
                         page=0,
                         pageSize=10,
-                        order=DESCENDING,
-                        sort='date') :
-        cursor = Cls.find(filtr)
+                        sort='date',
+                        order=DESCENDING) :
         skip = page * pageSize
-        cursor = cursor.sort([(sort, order)]).skip(skip).limit(pageSize)
-        return Cls.to_list(cursor)
+        cursor = cls.find(filtr).sort([(sort, order)]).skip(skip).limit(pageSize)
+        c = yield cls.to_list(cursor)
+        raise Return(c)
 
     @classmethod
-    async def delete_list(oids):
+    async def delete_list(cls,oids):
         doclist = [ObjectId(oid) for oid in oids]
-        r = await Cls.remove({'_id': {'$in':doclist}})
+        r = await cls.remove({'_id': {'$in':doclist}})
         return r
 
     @classmethod
-    async def insert_one(id,doc):
+    async def insert_one(cls,id,doc):
         doc.update({'date':datetime.now()})
-        return Cls.update(
+        return cls.update(
             {'_id': ObjectId(id)},
             {'$set': doc}
         )
 
     @classmethod
-    async def update_one(id,doc):
+    async def update_one(cls,id,doc):
         doc.update({'update':datetime.now()})
-        return Cls.update(
+        return cls.update(
             {'_id': ObjectId(id)},
             {'$set': doc}
         )
 
+    @classmethod
+    def find_one_sync(cls,_id):
+        return cls.get_collection(pymongo=True).find_one({'_id': ObjectId(_id)})
 
     @classmethod
     def get_gridfs(cls, async=True):
