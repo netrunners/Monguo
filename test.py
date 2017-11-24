@@ -1,9 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# Monguo
 # @Author: lime
 # @Date:   2014-03-26 14:00:01
-# @Last Modified by:   lime
-# @Last Modified time: 2014-03-26 14:37:29
+# @Last Modified by:   Phil
+# Date:<2017/11/24 05:08:40>
 
 from datetime import datetime
 from bson.dbref import DBRef
@@ -12,7 +11,6 @@ from tornado.ioloop import IOLoop
 from pprint import pprint
 
 from monguo import Document, EmbeddedDocument
-#from monguo.document import *
 from monguo.field import *
 from monguo.connection import *
 
@@ -27,24 +25,18 @@ class UserDocument(Document):
         'collection': 'user'
     }
 
-    @gen.coroutine
-    def get_user_list_1():
-        result = yield UserDocument.to_list(UserDocument.find())
-        raise gen.Return(result)
 
+    async def get_user_list_1():
+        return UserDocument.to_list(UserDocument.find())
 
     @staticmethod
-    @gen.coroutine
-    def get_user_list_2():
-        result = yield UserDocument.to_list(UserDocument.find())
-        raise gen.Return(result)
+    async def get_user_list_2():
+        return UserDocument.to_list(UserDocument.find())
 
 
     @classmethod
-    @gen.coroutine
-    def get_user_list_3(cls):
-        result = yield UserDocument.to_list(UserDocument.find())
-        raise gen.Return(result)
+    async def get_user_list_3(cls):
+        return UserDocument.to_list(UserDocument.find())
 
 
     def get_user_list_4():
@@ -79,8 +71,9 @@ class PostDocument(Document):
     }
 
 
-@gen.coroutine
 #XXX todo : enforce tests, more assertions, migrate to testunit
+
+@gen.coroutine
 def test():
 
     print('drop users')
@@ -110,7 +103,7 @@ def test():
 
     comment = {
         'commentor': DBRef(UserDocument.meta['collection'], alice_id),
-        'contents': 'I am comments.'
+        'contents': 'a comment'
     }
     print('update post with comment')
 
@@ -126,27 +119,40 @@ def test():
     print('post list :')
     pprint(posts)
     assert len(posts) is 5
+
+
+    print('___listing____')
+    posts = yield PostDocument.list({},sort='author')
+    print('post list :')
+    print([p for p in posts])
+    #pprint(posts)
+    assert len(posts) is 10
+    print('______________')
+
     user_list = yield UserDocument.get_user_list_1()
     print('user list method 1', user_list)
     user_list = yield UserDocument.get_user_list_2()
-    print (user_list)
+
+    print(user_list)
     print('user list method 2', user_list)
 
     print('user list method 3', user_list)
 
     user_list = yield UserDocument.get_user_list_3()
 
-    print (user_list)
+    print(user_list)
     user_list = UserDocument.get_user_list_4()
-    print (user_list)
+    print(user_list)
     user_list = UserDocument.get_user_list_5()
-    print (user_list)
+    print(user_list)
     user_list = UserDocument.get_user_list_6()
-    print (user_list)
+    print(user_list)
 
     user = yield UserDocument.find_one({'name': 'Bob'}, {"age":1})
     print('find bob : ', user)
 
+    user = UserDocument.find_one_sync(user['_id'])
+    print('sync',user)
 
 
 if __name__ == '__main__':
