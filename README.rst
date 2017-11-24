@@ -4,6 +4,9 @@ Monguo
 
 This is the port of Monguo to Python3
 
+You may need to uninstall the previous installation
+before installing this one.
+
 .. image:: https://github.com/shiyanhui/monguo/blob/master/doc/source/_static/monguo.jpg?raw=true
 	:width: 100px
 	
