@@ -21,6 +21,7 @@ from .validator import Validator
 # insert_one and update_one do autodate
 from datetime import datetime
 from pymongo import DESCENDING
+from pymongo.collection import Collection
 
 __all__ = ['BaseDocument', 'EmbeddedDocument', 'Document']
 
@@ -360,3 +361,53 @@ class Document(BaseDocument, metaclass=MonguoMeta):
             fs = gridfs.GridFS(db)
 
         return fs
+
+
+
+    @classmethod
+    async def archive_list(Cls,oids):
+        ''' need to archive the post as well '''
+        oids = [ObjectId(oid) for oid in oids]
+        S = Cls.get_collection(pymongo=True)
+        D = Cls.get_database(pymongo=True)
+        try:
+            T = Collection(D,Cls.__name__+'_archives',create=True)
+        except Exception : # OperationFailure
+            T = Collection(D,Cls.__name__+'_archives')
+        bulkInsert = T.initialize_unordered_bulk_op()
+        bulkRemove = S.initialize_unordered_bulk_op()
+
+        docs = list(S.find({"_id":{'$in': oids}}))
+        x = 1000
+        counter = 0
+
+        for doc in docs :
+            bulkInsert.insert(doc)
+            bulkRemove.find({'_id':doc['_id']}).remove_one()
+            counter += 1
+            if counter % x == 0 :
+                bulkInsert.execute()
+                bulkRemove.execute()
+                bulkInsert = T.initialize_unordered_bulk_op()
+                bulkRemove = S.initialize_unordered_bulk_op()
+
+        bulkInsert.execute()
+        bulkRemove.execute()
+
+
+class AutoDateDocument(Document, metaclass=MonguoMeta):
+    @classmethod
+    async def insert_one(cls,id,doc):
+        doc.update({'date':datetime.now()})
+        return cls.update(
+            {'_id': ObjectId(id)},
+            {'$set': doc}
+        )
+
+    @classmethod
+    async def update_one(cls,id,doc):
+        doc.update({'update':datetime.now()})
+        return cls.update(
+            {'_id': ObjectId(id)},
+            {'$set': doc}
+        )
