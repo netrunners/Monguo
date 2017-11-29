@@ -3,3 +3,4 @@
 dist
 monguo.egg-info
 build
+.coverage
