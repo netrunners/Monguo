@@ -332,12 +332,10 @@ class Document(BaseDocument, metaclass=MonguoMeta):
         return r
 
     @classmethod
-    async def insert_one(cls,id,doc):
+    async def insert_one(cls,doc):
         doc.update({'date':datetime.now()})
-        return cls.update(
-            {'_id': ObjectId(id)},
-            {'$set': doc}
-        )
+        return cls.insert(doc)
+
 
     @classmethod
     async def update_one(cls,id,doc):
